@@ -1,11 +1,13 @@
-package ipv4;
+package ipv4.service;
 
 import ipv4.exception.InvalidIpv4Exception;
+import ipv4.model.Ipv4Model;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -22,17 +24,17 @@ public class Ipv4FileReader {
 
     public Long readFromFile(String fileName) throws IOException {
         File ipv4File = new File(fileName);
-        int[] firstPartUniqueIps = new int[MAX_IPV4_UNIQUE_COUNT_FIRST_PART_IN_INT];
-        int[] secondPartUniqueIps = new int[MAX_IPV4_UNIQUE_COUNT_SECOND_PART_IN_INT];
+        ArrayList<Ipv4Model> uniqueFields = new ArrayList<>();
+        Long count = 0L;
         try (BufferedReader bufferedReader = new BufferedReader(new FileReader(ipv4File))) {
             String line;
             while ((line = bufferedReader.readLine()) != null) {
                 List<Integer> ips = extractIpv4(line);
                 long uniqueNumberForIp = createUniqueNumberForIp(ips);
-                putToRightArray(firstPartUniqueIps, secondPartUniqueIps, uniqueNumberForIp);
+                count = putToRightArray(uniqueNumberForIp, count, uniqueFields);
             }
         }
-        return countAllUniques(firstPartUniqueIps, secondPartUniqueIps);
+        return count;
     }
 
     private Long countAllUniques(int[] firstPartUniqueIps, int[] secondPartUniqueIps) {
@@ -70,13 +72,23 @@ public class Ipv4FileReader {
                 * FOURTH_PRIME_NUMBER % MAX_IPV4_UNIQUE_COUNT;
     }
 
-    private void putToRightArray(int[] firstArray, int[] secondArray, long value) {
-        if (value < MAX_IPV4_UNIQUE_COUNT_SECOND_PART_IN_INT) {
-            firstArray[Math.toIntExact(value)]++;
+    private Long putToRightArray(Long uniqueNumberForIp, Long count, ArrayList<Ipv4Model> arrayList) {
+
+        if (arrayList.parallelStream().noneMatch(c -> c.getIp().equals(uniqueNumberForIp))) {
+            count++;
+            Ipv4Model ipv4Model = new Ipv4Model();
+            ipv4Model.setIp(uniqueNumberForIp);
+            ipv4Model.setRepeatCount(1);
+            arrayList.add(ipv4Model);
         } else {
-            int positionForSecondArray = Math.toIntExact(value - MAX_IPV4_UNIQUE_COUNT_SECOND_PART_IN_INT);
-            secondArray[Math.toIntExact(positionForSecondArray)]++;
+            Ipv4Model first = arrayList.parallelStream().filter(c -> c.getIp().equals(uniqueNumberForIp)).findFirst().get();
+            if (first.getRepeatCount() == 1) {
+                count--;
+            }
+            first.setRepeatCount(first.getRepeatCount() + 1);
+
         }
+        return count;
 
     }
 
