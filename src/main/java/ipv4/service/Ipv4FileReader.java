@@ -18,9 +18,6 @@ public class Ipv4FileReader {
     private static final int THIRD_PRIME_NUMBER = 269;
     private static final int FOURTH_PRIME_NUMBER = 271;
     private static final long MAX_IPV4_UNIQUE_COUNT = 4228250625L;
-    private static final int MAX_IPV4_UNIQUE_COUNT_FIRST_PART_IN_INT = 2114125312;
-    private static final int MAX_IPV4_UNIQUE_COUNT_SECOND_PART_IN_INT = 2114125313;
-
 
     public Long readFromFile(String fileName) throws IOException {
         File ipv4File = new File(fileName);
@@ -31,7 +28,7 @@ public class Ipv4FileReader {
             while ((line = bufferedReader.readLine()) != null) {
                 List<Integer> ips = extractIpv4(line);
                 long uniqueNumberForIp = createUniqueNumberForIp(ips);
-                count = putToRightArray(uniqueNumberForIp, count, uniqueFields);
+                count = putToRightList(uniqueNumberForIp, count, uniqueFields);
             }
         }
         return count;
@@ -72,7 +69,7 @@ public class Ipv4FileReader {
                 * FOURTH_PRIME_NUMBER % MAX_IPV4_UNIQUE_COUNT;
     }
 
-    private Long putToRightArray(Long uniqueNumberForIp, Long count, ArrayList<Ipv4Model> arrayList) {
+    private Long putToRightList(Long uniqueNumberForIp, Long count, ArrayList<Ipv4Model> arrayList) {
 
         if (arrayList.parallelStream().noneMatch(c -> c.getIp().equals(uniqueNumberForIp))) {
             count++;
